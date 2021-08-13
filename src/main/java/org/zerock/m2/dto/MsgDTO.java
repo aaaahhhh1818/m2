@@ -15,6 +15,6 @@ public class MsgDTO {
 
     private Long mno;
     private String who,whom, content;
-    private Timestamp regDate, openDate;
+    private Timestamp regdate, opendate;
 
 }

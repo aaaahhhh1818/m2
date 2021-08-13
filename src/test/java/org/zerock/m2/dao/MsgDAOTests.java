@@ -12,6 +12,13 @@ import java.util.stream.IntStream;
 public class MsgDAOTests {
 
     @Test
+    public void testSelect() {
+
+        Long mno = 111L;
+        log.info(MsgDAO.INSTANCE.select(mno));
+    }
+
+    @Test
     public void testInsertDummies() {
 
         IntStream.rangeClosed(1,100).forEach(i -> {

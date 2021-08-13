@@ -1,5 +1,6 @@
 package org.zerock.m2.dao;
 
+import com.mysql.cj.jdbc.JdbcConnection;
 import lombok.extern.log4j.Log4j2;
 import org.zerock.m2.dto.MsgDTO;
 
@@ -18,8 +19,78 @@ public enum MsgDAO {
             "from\n" +
             "  tbl_msg\n" +
             "where\n" +
-            "  whom = ? or who = ?\n" +
+            "  who = ? or whom = ?\n" +
             "order by kind asc, mno desc";
+
+    private static final String SQL_SELECT = "select mno, who, whom, content, regdate, opendate from tbl_msg where mno = ?";
+    private static final String SQL_UPDATE_OPEN = "update tbl_msg set opendate = now() where mno = ?";
+
+    private static final String SQL_REMOVE = "delete from tbl_msg where mno=? and who=?";
+
+
+    public MsgDTO remove(Long mno, String who) throws RuntimeException {
+
+        MsgDTO msgDTO = MsgDTO.builder().build();
+
+        new JdbcTemplate() {
+            @Override
+            protected void execute() throws Exception {
+
+                preparedStatement = connection.prepareStatement(SQL_REMOVE);
+                preparedStatement.setLong(1, mno);
+                preparedStatement.setString(2, who);
+
+                preparedStatement.executeUpdate();
+
+                preparedStatement.close();
+                preparedStatement = null;
+
+            }
+        }.makeAll();
+
+        return msgDTO;
+    }
+
+    public MsgDTO select(Long mno) throws RuntimeException {
+
+        MsgDTO msgDTO = MsgDTO.builder().build(); //빈 객체 생성
+
+        new JdbcTemplate() {
+            @Override
+            protected void execute() throws Exception {
+
+                //update opendate
+                preparedStatement = connection.prepareStatement(SQL_UPDATE_OPEN);
+                preparedStatement.setLong(1,mno);
+
+                preparedStatement.executeUpdate();
+
+                preparedStatement.close();
+                preparedStatement = null;
+
+
+                preparedStatement = connection.prepareStatement(SQL_SELECT);
+                preparedStatement.setLong(1, mno);
+                resultSet = preparedStatement.executeQuery();
+
+                resultSet.next();
+
+                //mno, who, whom, content, regdate,
+                //opendate
+                msgDTO.setMno(resultSet.getLong(1));
+                msgDTO.setWho(resultSet.getString(2));
+                msgDTO.setWhom(resultSet.getString(3));
+                msgDTO.setContent(resultSet.getString(4));
+                msgDTO.setRegdate(resultSet.getTimestamp(5));
+
+                msgDTO.setOpendate(resultSet.getTimestamp(6));
+
+            }
+        }.makeAll();
+
+        return msgDTO;
+
+    }
 
     public void insert(MsgDTO msgDTO) throws RuntimeException {
 
@@ -29,9 +100,9 @@ public enum MsgDAO {
                 //who,whom,content
                 int idx = 1; //중복번호를 막을 수 있음!
                 preparedStatement = connection.prepareStatement(SQL_INSERT);
-                preparedStatement.setString(idx++,msgDTO.getWho());
-                preparedStatement.setString(idx++,msgDTO.getWhom());
-                preparedStatement.setString(idx++,msgDTO.getContent());
+                preparedStatement.setString(idx++, msgDTO.getWho());
+                preparedStatement.setString(idx++, msgDTO.getWhom());
+                preparedStatement.setString(idx++, msgDTO.getContent());
 
                 int count = preparedStatement.executeUpdate();
                 log.info("count: " + count);
@@ -51,9 +122,9 @@ public enum MsgDAO {
             @Override
             protected void execute() throws Exception {
                 preparedStatement = connection.prepareStatement(SQL_LIST);
-                preparedStatement.setString(1,user);
-                preparedStatement.setString(2,user);
-                preparedStatement.setString(3,user);
+                preparedStatement.setString(1, user);
+                preparedStatement.setString(2, user);
+                preparedStatement.setString(3, user);
 
                 resultSet = preparedStatement.executeQuery();
 
@@ -70,8 +141,8 @@ public enum MsgDAO {
                             .who(resultSet.getString(2))
                             .whom(resultSet.getString(3))
                             .content(resultSet.getString(5))
-                            .regDate(resultSet.getTimestamp(6))
-                            .openDate(resultSet.getTimestamp(7))
+                            .regdate(resultSet.getTimestamp(6))
+                            .opendate(resultSet.getTimestamp(7))
                             .build());
 
                 }
@@ -80,5 +151,6 @@ public enum MsgDAO {
 
         return listMap;
     }
+
 
 }
