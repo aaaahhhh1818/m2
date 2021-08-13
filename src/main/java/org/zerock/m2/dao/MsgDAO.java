@@ -15,7 +15,7 @@ public enum MsgDAO {
 
     private static final String SQL_INSERT = "insert into tbl_msg (who,whom,content) values (?,?,?)";
 
-    private static final String SQL_LIST = "select mno, who, whom, if(who = ?, 'R', 'S') kind, content, regdate, opendate\n" +
+    private static final String SQL_LIST = "select mno, who, whom, if(whom = ?, 'R', 'S') kind, content, regdate, opendate\n" +
             "from\n" +
             "  tbl_msg\n" +
             "where\n" +
