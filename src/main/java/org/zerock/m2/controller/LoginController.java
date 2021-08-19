@@ -8,10 +8,7 @@ import org.zerock.m2.service.MemberService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import java.io.IOException;
 
 @WebServlet(name = "LoginController", value = "/login")
@@ -23,7 +20,7 @@ public class LoginController extends HttpServlet {
 
         log.info("GET login");
 
-        request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request,response);
+        request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
     }
 
     @Override
@@ -32,6 +29,7 @@ public class LoginController extends HttpServlet {
         // 파라미터 수집 mid mpw
         String mid = request.getParameter("mid");
         String mpw = request.getParameter("mpw");
+        String remember = request.getParameter("remember");
 
 //        // 사용자 정보 구한다.   ----> 사용자의 정보가 없다. --> 다시 GET방식으로 로그인페이지 값
 //        MemberDTO memberDTO = MemberDTO.builder()
@@ -47,10 +45,16 @@ public class LoginController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("member", memberDTO);
 
+            if (remember != null) {
+                Cookie loginCookie = new Cookie("login", mid);
+                loginCookie.setMaxAge(60 * 60 * 24 * 7); //일주일 동안 로그인 유지
+                response.addCookie(loginCookie);
+            }
+
             // /msg/list 로 리다이렉트 시킨다.
             response.sendRedirect("/msg/list");
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("Login Fail.." + e.getMessage());
             response.sendRedirect("/login?result=fail");
         }

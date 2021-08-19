@@ -26,14 +26,37 @@ public class ListController extends HttpServlet {
         // 로그인 체크 로직
         HttpSession session = request.getSession();
         Object memberObj = session.getAttribute("member");
+
+        //2개 혹은 1개
+        Cookie[] allCookies = request.getCookies();
+        boolean checkCookie = false;
+
+        String user = null;
+
+        if (allCookies != null && allCookies.length > 0) { //쿠키가 1개 이상이라도 존재한다면
+            for (int i = 0; i < allCookies.length; i++) {
+                Cookie ck = allCookies[i];
+                if (ck.getName().equals("login")) {
+                    checkCookie = true;
+                    user = ck.getValue();
+                }
+            }
+        }
+
         // 로그인 관련 정보 없음 - 로그인 안한 사용자
-        if(memberObj == null) {
+        if (memberObj == null && checkCookie == false) { //session과 cookie 전부 정보가 없을 때
             response.sendRedirect("/login");
             return;
         }
-        MemberDTO memberDTO = (MemberDTO)memberObj; //타입을 바꿔서 가져오는 것
 
-        String user = memberDTO.getMid();
+        //만약 우리에게 mid만 필요하다면 이미 login쿠키 안에 있다.
+
+        if (memberObj != null) {
+            MemberDTO memberDTO = (MemberDTO) memberObj; //타입을 바꿔서 가져오는 것
+            user = memberDTO.getMid();
+        }else {
+
+        }
 
         Map<String, List<MsgDTO>> result = MsgService.INSTANCE.getList(user);
 
@@ -41,7 +64,7 @@ public class ListController extends HttpServlet {
         request.setAttribute("Receive", result.get("R"));
         request.setAttribute("Send", result.get("S"));
 
-       request.getRequestDispatcher("/WEB-INF/msg/list.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/msg/list.jsp").forward(request, response);
 
     }
 
